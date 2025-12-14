@@ -20,17 +20,31 @@ export default function DealDigestDetailPage() {
   useEffect(() => {
     // Simulate loading
     const timer = setTimeout(() => {
-      const ticker = (params.id as string)?.toUpperCase().trim();
-      if (ticker) {
-        const data = getStockData(ticker);
-        if (data) {
-          setStockData(data);
-          setNotFound(false);
-        } else {
-          setStockData(null);
-          setNotFound(true);
-        }
+      const idParam = params.id as string;
+      if (!idParam) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      
+      // Convert to uppercase and trim - ensure we're using ticker, not ID
+      const ticker = idParam.toUpperCase().trim();
+      
+      // If the param is a number (like "1"), it's likely an ID, not a ticker
+      // In that case, we should show not found
+      if (/^\d+$/.test(ticker)) {
+        setStockData(null);
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      
+      const data = getStockData(ticker);
+      if (data) {
+        setStockData(data);
+        setNotFound(false);
       } else {
+        setStockData(null);
         setNotFound(true);
       }
       setLoading(false);

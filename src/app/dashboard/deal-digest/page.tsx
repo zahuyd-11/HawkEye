@@ -189,9 +189,13 @@ export default function DealDigestPage() {
         {/* DealDigest List - Masonry Grid Style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDigests.map((digest) => (
+            <Link 
+              key={digest.id}
+              href={`/dashboard/deal-digest/${digest.ticker.toUpperCase()}`}
+              className="block"
+            >
             <Card 
-              key={digest.id} 
-              className="glass border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+              className="glass border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full"
             >
               <CardHeader>
                 <div className="flex items-start justify-between gap-3">
@@ -246,18 +250,17 @@ export default function DealDigestPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Link href={`/dashboard/deal-digest/${digest.ticker.toUpperCase()}`} className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Xem chi tiết
-                    </Button>
-                  </Link>
-                  <Button variant="outline" size="icon" title="Tải xuống">
+                  <Button variant="outline" className="flex-1" onClick={(e) => e.stopPropagation()}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Xem chi tiết
+                  </Button>
+                  <Button variant="outline" size="icon" title="Tải xuống" onClick={(e) => e.stopPropagation()}>
                     <Download className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
 
