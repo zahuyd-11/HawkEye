@@ -2,7 +2,6 @@
   "build": {
     "env": {
       "NEXT_PUBLIC_VERCEL_ENV": "production"
-    },
-    "command": "npx prisma generate && npx prisma db push && next build"
+    }
   }
 }
