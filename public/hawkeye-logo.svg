@@ -1,0 +1,38 @@
+<svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circular container boundary -->
+  <circle cx="50" cy="50" r="50" fill="white"/>
+  
+  <!-- Eye at the top (dark blue) - forms top arc of circle -->
+  <path d="M 15 40 Q 50 15 85 40" stroke="#1e3a5f" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="50" cy="35" rx="28" ry="15" fill="#1e3a5f"/>
+  <!-- Iris -->
+  <circle cx="50" cy="35" r="10" fill="#0f1f35"/>
+  <!-- Pupil -->
+  <circle cx="50" cy="35" r="6" fill="#0a1520"/>
+  <!-- Highlight on pupil -->
+  <circle cx="52" cy="33" r="1.5" fill="white"/>
+  
+  <!-- Hand at the bottom (dark blue) - forms bottom arc of circle -->
+  <path d="M 20 65 Q 30 75 40 80 Q 50 85 60 80 Q 70 75 80 65" stroke="#1e3a5f" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Palm -->
+  <ellipse cx="50" cy="75" rx="20" ry="12" fill="#1e3a5f"/>
+  <!-- Fingers -->
+  <path d="M 35 75 Q 35 82 35 88" stroke="#1e3a5f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 42 77 Q 42 84 42 90" stroke="#1e3a5f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 50 78 Q 50 85 50 91" stroke="#1e3a5f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 58 77 Q 58 84 58 90" stroke="#1e3a5f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 65 75 Q 65 82 65 88" stroke="#1e3a5f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Bar graph in the center -->
+  <!-- Left bar (shortest, dark blue) -->
+  <rect x="38" y="58" width="7" height="7" fill="#1e3a5f" rx="1"/>
+  <!-- Middle bar (medium blue) -->
+  <rect x="46.5" y="53" width="7" height="12" fill="#3d6fa5" rx="1"/>
+  <!-- Right bar (tallest, light blue) -->
+  <rect x="55" y="48" width="7" height="17" fill="#5ba3d9" rx="1"/>
+  
+  <!-- Line graph with arrow (medium blue) -->
+  <path d="M 41.5 65 L 50 58 L 58.5 48" stroke="#3d6fa5" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Arrow head pointing up-right -->
+  <path d="M 58.5 48 L 55 45 M 58.5 48 L 62 45" stroke="#3d6fa5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

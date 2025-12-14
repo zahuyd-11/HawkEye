@@ -1,0 +1,11 @@
+<svg width="120" height="32" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Icon -->
+  <rect width="32" height="32" rx="4" fill="#10b981"/>
+  <path d="M10 8H14V12H18V8H22V24H18V14H14V24H10V8Z" fill="white"/>
+  
+  <!-- HawkEye Text -->
+  <text x="40" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#1f2937">
+    HawkEye
+  </text>
+</svg>
+

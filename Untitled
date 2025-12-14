@@ -1,0 +1,44 @@
+# ======================================================
+# 1. CẤU HÌNH DATABASE (QUAN TRỌNG NHẤT)
+# ======================================================
+# Đang dùng SQLite để chạy Demo cho ổn định (Không cần mạng Supabase)
+DATABASE_URL="file:./dev.db"
+
+# --- DỰ PHÒNG: KẾT NỐI SUPABASE (CHỈ DÙNG KHI DEPLOY) ---
+# Khi nào deploy lên mạng thì mở comment 2 dòng dưới này ra và đóng dòng SQLite ở trên lại
+# DATABASE_URL="postgresql://postgres.iskimqdvugljtqepdpdn:Andrewl2611%40@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+# DIRECT_URL="postgresql://postgres:Andrewl2611%40@db.bqhstpkwneahvytglndp.supabase.co:5432/postgres"
+
+# ======================================================
+# 2. AUTHENTICATION & SECURITY
+# ======================================================
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="piNHwZHlfWg89jfNG2qHTFwOk1qrhiyFsol7QvnYi8M="
+
+# Client-side Supabase (Dùng cho Upload ảnh/Auth nếu cần)
+NEXT_PUBLIC_SUPABASE_URL="https://iskimqdvugljtqepdpdn.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza2ltcWR2dWdsanRxZXBkcGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyOTAwNTAsImV4cCI6MjA4MDg2NjA1MH0.bLTN69rmw_KTHNzQ64RQxRdXle4c1puD2yPYi5f-UO8"
+
+# ======================================================
+# 3. AI & API KEYS
+# ======================================================
+# LƯU Ý: Key này bạn đã lộ trên chat, sau demo nhớ tạo key mới nhé!
+OPENAI_API_KEY="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"
+
+# ======================================================
+# 4. EMAIL SERVICE (SMTP)
+# ======================================================
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="hawkeye.contact.vn@gmail.com"
+SMTP_PASSWORD="rqojvhtzouxwyuln"
+
+# ======================================================
+# 5. CÁC BIẾN KHÁC (CHƯA DÙNG)
+# ======================================================
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
+STRIPE_SECRET_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+MARKET_DATA_API_KEY=""
