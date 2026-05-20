@@ -58,10 +58,10 @@ export default function SignUpPage() {
 
       toast({
         title: "Success",
-        description: "Account created! Please sign in.",
+        description: "Account created successfully! Welcome to HawkEye.",
       });
 
-      router.push("/auth/signin");
+      router.push(data.redirectUrl || "/onboarding");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to create account";
       toast({

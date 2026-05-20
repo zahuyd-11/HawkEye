@@ -1,12 +1,14 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FileText, TrendingUp, BookOpen, AlertTriangle, Eye, ArrowRight } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
+import { DashboardStatsSkeleton } from "@/components/ui/loading";
+import { useQuery } from "@tanstack/react-query";
 
 interface DashboardStats {
   watchlistCount: number;
@@ -15,34 +17,35 @@ interface DashboardStats {
   riskAlerts: number;
 }
 
-export default function DashboardPage() {
+function DashboardStatsContent() {
   const { data: session } = useSession();
-  const [stats, setStats] = useState<DashboardStats>({
-    watchlistCount: 0,
-    recentDealDigests: 0,
-    recentMicroResearch: 0,
-    riskAlerts: 0,
+  const { data: stats, isLoading } = useQuery<DashboardStats>({
+    queryKey: ["dashboard-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/dashboard/stats");
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      return res.json();
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    refetchOnWindowFocus: false,
   });
 
-  useEffect(() => {
-    // Fetch dashboard stats
-    fetch("/api/dashboard/stats")
-      .then((res) => res.json())
-      .then((data) => setStats(data))
-      .catch(console.error);
-  }, []);
+  if (isLoading) {
+    return <DashboardStatsSkeleton />;
+  }
+
+  if (!stats) return null;
 
   return (
-    <>
-      <main className="container px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Welcome back, {session?.user?.name || session?.user?.email}
-          </p>
-        </div>
+    <main className="container px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Welcome back, {session?.user?.name || session?.user?.email}
+        </p>
+      </div>
 
-        {/* Quick Stats */}
+      {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -199,7 +202,16 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
+    </main>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <>
+      <Suspense fallback={<DashboardStatsSkeleton />}>
+        <DashboardStatsContent />
+      </Suspense>
       <Footer />
     </>
   );

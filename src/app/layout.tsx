@@ -7,6 +7,7 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { ChatWidget } from "@/components/chat-widget";
 import { MarketTicker } from "@/components/market-ticker";
 import { LanguageProvider } from "@/components/providers/language-provider";
+import SmoothScrollProvider from "@/components/providers/smooth-scroll-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,18 +26,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={inter.variable}>
-      <body className="antialiased m-0 p-0">
-        <QueryProvider>
-          <Providers>
-            <LanguageProvider>
-              <MarketTicker />
-              {children}
-              <ChatWidget />
-            </LanguageProvider>
-          </Providers>
-        </QueryProvider>
-        <Toaster />
+      <body className="antialiased m-0 p-0 dark bg-[#09090b] text-slate-100 bg-cyber-grid min-h-screen relative">
+        <SmoothScrollProvider>
+          <QueryProvider>
+            <Providers>
+              <LanguageProvider>
+                <MarketTicker />
+                {children}
+                <ChatWidget />
+              </LanguageProvider>
+            </Providers>
+          </QueryProvider>
+          <Toaster />
+        </SmoothScrollProvider>
       </body>
     </html>
   );
 }
+

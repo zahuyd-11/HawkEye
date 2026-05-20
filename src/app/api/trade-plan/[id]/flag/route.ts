@@ -3,14 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    const plan = await prisma.tradePlan.findUnique({ where: { id: params.id } });
+    const { id } = await Promise.resolve(params);
+    const plan = await prisma.tradePlan.findUnique({ where: { id } });
     if (!plan) {
       return NextResponse.json({ error: "Trade plan not found" }, { status: 404 });
     }
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const updatedPlan = await prisma.tradePlan.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         flagged,
         flaggedReason: reason || null,

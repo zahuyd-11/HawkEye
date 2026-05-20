@@ -3,14 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export async function POST(_: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(_: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const plan = await prisma.tradePlan.findUnique({ where: { id: params.id } });
+    const { id } = await Promise.resolve(params);
+    const plan = await prisma.tradePlan.findUnique({ where: { id } });
     if (!plan) {
       return NextResponse.json({ error: "Trade plan not found" }, { status: 404 });
     }
