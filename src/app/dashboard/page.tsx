@@ -9,6 +9,20 @@ import { FileText, TrendingUp, BookOpen, AlertTriangle, Eye, ArrowRight } from "
 import { Footer } from "@/components/layout/footer";
 import { DashboardStatsSkeleton } from "@/components/ui/loading";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
+
+// Dynamic import cho ValuationWorkspace để tối ưu hóa bundle splitting (chỉ tải khi cần render)
+const ValuationWorkspace = dynamic(
+  () => import("@/components/dashboard/valuation-workspace"),
+  { 
+    loading: () => (
+      <div className="w-full h-96 bg-zinc-900/40 rounded-xl animate-pulse flex items-center justify-center">
+        <span className="text-zinc-500 text-sm font-mono">Đang tải Trạm Định Giá Định Lượng...</span>
+      </div>
+    ),
+    ssr: false 
+  }
+);
 
 interface DashboardStats {
   watchlistCount: number;
@@ -26,7 +40,7 @@ function DashboardStatsContent() {
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -46,162 +60,162 @@ function DashboardStatsContent() {
       </div>
 
       {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.watchlistCount}</div>
-              <p className="text-xs text-muted-foreground">Companies tracked</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">DealDigest</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.recentDealDigests}</div>
-              <p className="text-xs text-muted-foreground">Recent reports</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Micro Research</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.recentMicroResearch}</div>
-              <p className="text-xs text-muted-foreground">Available reports</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Risk Alerts</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.riskAlerts}</div>
-              <p className="text-xs text-muted-foreground">Active alerts</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>DealDigest</CardTitle>
-              <CardDescription>
-                View standardized company analysis reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/dashboard/deal-digest">
-                <Button className="w-full">
-                  View Reports <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>TradePlan Builder</CardTitle>
-              <CardDescription>
-                Create and manage your trading plans
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/dashboard/trade-plan">
-                <Button className="w-full">
-                  Build Plan <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Micro Research</CardTitle>
-              <CardDescription>
-                Browse short company research notes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/dashboard/micro-research">
-                <Button className="w-full">
-                  Browse Library <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Market Overview */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Market Overview</CardTitle>
-            <CardDescription>Real-time market data and indicators</CardDescription>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">VNIndex</p>
-                <p className="text-2xl font-bold">1,234.56</p>
-                <p className="text-sm text-green-600">+1.23%</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">HNX</p>
-                <p className="text-2xl font-bold">234.56</p>
-                <p className="text-sm text-red-600">-0.45%</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">UPCOM</p>
-                <p className="text-2xl font-bold">89.12</p>
-                <p className="text-sm text-green-600">+0.12%</p>
-              </div>
-            </div>
+            <div className="text-2xl font-bold">{stats.watchlistCount}</div>
+            <p className="text-xs text-muted-foreground">Companies tracked</p>
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">DealDigest</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.recentDealDigests}</div>
+            <p className="text-xs text-muted-foreground">Recent reports</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Micro Research</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.recentMicroResearch}</div>
+            <p className="text-xs text-muted-foreground">Available reports</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Risk Alerts</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.riskAlerts}</div>
+            <p className="text-xs text-muted-foreground">Active alerts</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest actions and updates</CardDescription>
+            <CardTitle>DealDigest</CardTitle>
+            <CardDescription>
+              View standardized company analysis reports
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Viewed DealDigest: VCB</p>
-                  <p className="text-sm text-muted-foreground">2 hours ago</p>
-                </div>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Created TradePlan: VIC</p>
-                  <p className="text-sm text-muted-foreground">1 day ago</p>
-                </div>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Read Micro Research: Banking Sector</p>
-                  <p className="text-sm text-muted-foreground">3 days ago</p>
-                </div>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
+            <Link href="/dashboard/deal-digest">
+              <Button className="w-full">
+                View Reports <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>TradePlan Builder</CardTitle>
+            <CardDescription>
+              Create and manage your trading plans
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/dashboard/trade-plan">
+              <Button className="w-full">
+                Build Plan <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Micro Research</CardTitle>
+            <CardDescription>
+              Browse short company research notes
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/dashboard/micro-research">
+              <Button className="w-full">
+                Browse Library <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Market Overview */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Market Overview</CardTitle>
+          <CardDescription>Real-time market data and indicators</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">VNIndex</p>
+              <p className="text-2xl font-bold">1,234.56</p>
+              <p className="text-sm text-green-600">+1.23%</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">HNX</p>
+              <p className="text-2xl font-bold">234.56</p>
+              <p className="text-sm text-red-600">-0.45%</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">UPCOM</p>
+              <p className="text-2xl font-bold">89.12</p>
+              <p className="text-sm text-green-600">+0.12%</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Your latest actions and updates</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Viewed DealDigest: VCB</p>
+                <p className="text-sm text-muted-foreground">2 hours ago</p>
+              </div>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Created TradePlan: VIC</p>
+                <p className="text-sm text-muted-foreground">1 day ago</p>
+              </div>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Read Micro Research: Banking Sector</p>
+                <p className="text-sm text-muted-foreground">3 days ago</p>
+              </div>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </main>
   );
 }
@@ -212,8 +226,15 @@ export default function DashboardPage() {
       <Suspense fallback={<DashboardStatsSkeleton />}>
         <DashboardStatsContent />
       </Suspense>
+
+      {/* ================================================================= */}
+      {/* TRẠM ĐỊNH GIÁ TOÁN ĐỊNH LƯỢNG CFA (Valuation Sensitivity Sandbox) */}
+      {/* ================================================================= */}
+      <section className="border-t border-zinc-800/60">
+        <ValuationWorkspace ticker="FPT" />
+      </section>
+
       <Footer />
     </>
   );
 }
-
