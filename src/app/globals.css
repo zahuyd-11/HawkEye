@@ -136,37 +136,30 @@
     background-color: hsl(var(--gold));
   }
 
-  /* Grid pattern background */
-  .bg-grid-pattern {
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
+  /* Consumer fintech — no harsh grids; ambient depth only */
+  .bg-grid-pattern,
   .dark .bg-grid-pattern {
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background: radial-gradient(ellipse 70% 45% at 50% 0%, rgba(56, 189, 248, 0.05), transparent 65%);
   }
 
-  /* Cyber-grid background for hero section */
   .bg-cyber-grid {
-    background-image: 
-      linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-      radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-    background-size: 40px 40px, 40px 40px, 800px 800px, 800px 800px;
-    background-position: 0 0, 0 0, 0 0, 100% 0;
+    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.06), transparent 70%);
   }
 
-  .dark .bg-cyber-grid {
-    background-image: 
-      linear-gradient(to right, rgba(59, 130, 246, 0.15) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(59, 130, 246, 0.15) 1px, transparent 1px),
-      radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-      radial-gradient(circle at 80% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+  .obsidian-glass {
+    background: rgba(11, 15, 25, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  }
+
+  .border-ambient-glow {
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.06),
+      0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   /* Abstract financial globe pattern */
@@ -176,5 +169,38 @@
       radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
       radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%),
       linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+  }
+
+  html,
+  body {
+    background-color: #0d0d0c;
+    color: #e4e4e7;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: inline-flex;
+    animation: marquee 40s linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  .animate-marquee-slow {
+    display: inline-flex;
+    animation: marquee 40s linear infinite;
+  }
+
+  .animate-marquee-slow:hover {
+    animation-play-state: paused;
   }
 }

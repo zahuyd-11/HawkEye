@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +28,19 @@ interface DealDigest {
 type SortOption = "date-desc" | "date-asc" | "risk-desc" | "risk-asc";
 
 export default function DealDigestPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0D0D0C] flex items-center justify-center text-zinc-500 text-sm">Đang tải...</div>}>
+      <DealDigestContent />
+    </Suspense>
+  );
+}
+
+function DealDigestContent() {
+  const searchParams = useSearchParams();
+  const scanTicker = searchParams.get("scan")?.toUpperCase() ?? "";
   const [dealDigests, setDealDigests] = useState<DealDigest[]>([]);
   const [filteredDigests, setFilteredDigests] = useState<DealDigest[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(scanTicker);
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [marketCapFilter, setMarketCapFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
@@ -65,6 +76,10 @@ export default function DealDigestPage() {
         // Silently fail and use mock data
       });
   }, []);
+
+  useEffect(() => {
+    if (scanTicker) setSearchTerm(scanTicker);
+  }, [scanTicker]);
 
   useEffect(() => {
     let filtered = dealDigests;

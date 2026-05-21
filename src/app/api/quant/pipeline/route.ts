@@ -1,4 +1,5 @@
-import { createClient } from '@/utils/supabase/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { NextResponse } from 'next/server';
 import { detectMarketRegime, MarketSignals } from '@/lib/quant/regime-detector';
 import { computeSpecificAllocation, AssetMetrics } from '@/lib/quant/portfolio-optimizer';
@@ -22,11 +23,11 @@ async function fetchRealtimeMarketData(sectors: string[]): Promise<AssetMetrics[
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-
-    // 1. Xác thực người dùng hệ thống
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // 1. Chuyển đổi hạ tầng: Sử dụng NextAuth để đọc Session thay vì Supabase
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized access blocked' }, { status: 401 });
+    }
 
     // 2. Nhận gói tham số cá nhân hóa động từ Frontend
     const { totalCapital, maxDrawdownAcceptable, sectorsOfInterest } = await request.json();
@@ -60,6 +61,8 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
+    console.error("Quant pipeline error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

@@ -1,473 +1,359 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, Calculator, TrendingUp, FileText } from "lucide-react";
-import { Footer } from "@/components/layout/footer";
 import Link from "next/link";
-import { RiskSurvey } from "@/components/trade-plans/RiskSurvey";
-import { StrategyDashboard } from "@/components/trade-plans/StrategyDashboard";
-import { calculateStrategy } from "@/lib/strategy-logic";
-import { calculateSurveyScore } from "@/data/risk-survey-data";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Wallet,
+  Shield,
+  Brain,
+  ChevronDown,
+  CheckCircle2,
+  Plus,
+  FileText,
+  Cpu,
+  Radar,
+} from "lucide-react";
+import { Footer } from "@/components/layout/footer";
+import { Button } from "@/components/ui/button";
+import { formatVnd, parseCapitalInput, formatCapitalInput } from "@/lib/behavioral-dna";
 
 interface TradePlan {
   id: string;
   name: string;
   ticker: string | null;
-  strategy: string | null;
-  strategyType?: string | null;
-  market?: string | null;
-  riskLevel?: string | null;
-  entryPrice: number | null;
-  exitPrice: number | null;
-  targetPrice?: number | null;
-  stopLoss: number | null;
-  positionSize: number | null;
-  riskRewardRatio: number | null;
-  thesis?: string | null;
-  notes?: string | null;
   status: string;
-  createdAt: string;
   updatedAt: string;
 }
 
-type SurveyState = "not_started" | "in_progress" | "completed";
+const RETAIL_ALLOCATION = [
+  { name: "Growth Assets", pct: 45, color: "#38bdf8" },
+  { name: "Defensive Assets", pct: 25, color: "#34d399" },
+  { name: "Cash Buffer", pct: 30, color: "#a1a1aa" },
+] as const;
+
+const STEPS = [
+  { id: 1, title: "Quy mô dòng vốn", icon: Wallet, desc: "Nhập vốn khả dụng (VND)" },
+  { id: 2, title: "Ngưỡng cắt lỗ drawdown", icon: Shield, desc: "Maximum Drawdown NAV" },
+  { id: 3, title: "Thiên lệch tâm lý hành vi", icon: Brain, desc: "Phản ứng khi cổ phiếu lõi -12%" },
+] as const;
 
 export default function TradePlanPage() {
-  // Survey state management
-  const [surveyState, setSurveyState] = useState<SurveyState>("not_started");
-  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, string>>({});
-  const [surveyScore, setSurveyScore] = useState<number | null>(null);
-  const [strategyProfile, setStrategyProfile] = useState<ReturnType<typeof calculateStrategy> | null>(null);
-
+  const [activeStep, setActiveStep] = useState(1);
+  const [capitalInput, setCapitalInput] = useState("1,000,000,000");
+  const [maxDrawdown, setMaxDrawdown] = useState(-15);
+  const [biasScenario, setBiasScenario] = useState("");
+  const [showGenome, setShowGenome] = useState(false);
+  const [guardActive, setGuardActive] = useState(false);
   const [tradePlans, setTradePlans] = useState<TradePlan[]>([]);
-  const [showCalculator, setShowCalculator] = useState(false);
-  const [calcEntry, setCalcEntry] = useState("");
-  const [calcExit, setCalcExit] = useState("");
-  const [calcStopLoss, setCalcStopLoss] = useState("");
-  const [calcCapital, setCalcCapital] = useState("");
-  const [calcMaxLoss, setCalcMaxLoss] = useState("");
+  const [showJournal, setShowJournal] = useState(false);
 
-  // Load survey results from localStorage on mount
   useEffect(() => {
-    const savedAnswers = localStorage.getItem("hawkeye_survey_answers");
-    const savedScore = localStorage.getItem("hawkeye_survey_score");
-
-    if (savedAnswers && savedScore) {
-      try {
-        const answers = JSON.parse(savedAnswers);
-        const score = parseInt(savedScore, 10);
-        setSurveyAnswers(answers);
-        setSurveyScore(score);
-        setStrategyProfile(calculateStrategy(score));
-        setSurveyState("completed");
-      } catch (error) {
-        console.error("Error loading survey data:", error);
+    const saved = localStorage.getItem("hawkeye_retail_genome");
+    if (!saved) return;
+    try {
+      const p = JSON.parse(saved);
+      if (p.capitalInput) setCapitalInput(p.capitalInput);
+      if (p.maxDrawdown) setMaxDrawdown(p.maxDrawdown);
+      if (p.biasScenario) setBiasScenario(p.biasScenario);
+      if (p.showGenome) {
+        setShowGenome(true);
+        setGuardActive(true);
       }
+    } catch {
+      /* ignore */
     }
   }, []);
 
   useEffect(() => {
     fetch("/api/trade-plan")
-      .then((res) => res.json())
-      .then((data) => {
-        // Ensure data is always an array
-        if (Array.isArray(data)) {
-          setTradePlans(data);
-        } else if (data?.error) {
-          console.error("API Error:", data.error);
-          setTradePlans([]); // Set empty array on error
-        } else {
-          setTradePlans([]); // Set empty array if data is not an array
-        }
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        setTradePlans([]); // Set empty array on fetch error
-      });
+      .then((r) => r.json())
+      .then((data) => setTradePlans(Array.isArray(data) ? data : []))
+      .catch(() => setTradePlans([]));
   }, []);
 
-  // Survey handlers
-  const handleSurveyComplete = (answers: Record<string, string>, score: number) => {
-    setSurveyAnswers(answers);
-    setSurveyScore(score);
-    const profile = calculateStrategy(score);
-    setStrategyProfile(profile);
-    setSurveyState("completed");
+  const capital = parseCapitalInput(capitalInput);
 
-    // Save to localStorage
-    localStorage.setItem("hawkeye_survey_answers", JSON.stringify(answers));
-    localStorage.setItem("hawkeye_survey_score", score.toString());
-  };
-
-  const handleStartSurvey = () => {
-    setSurveyState("in_progress");
-  };
-
-  const handleRetakeSurvey = () => {
-    setSurveyState("in_progress");
-    setSurveyAnswers({});
-    setSurveyScore(null);
-    setStrategyProfile(null);
-    localStorage.removeItem("hawkeye_survey_answers");
-    localStorage.removeItem("hawkeye_survey_score");
-  };
-
-  const handleCancelSurvey = () => {
-    setSurveyState("not_started");
-  };
-
-  const calculateRiskReward = () => {
-    const entry = parseFloat(calcEntry);
-    const exit = parseFloat(calcExit);
-    const stopLoss = parseFloat(calcStopLoss);
-
-    if (entry && exit && stopLoss) {
-      const risk = Math.abs(entry - stopLoss);
-      const reward = Math.abs(exit - entry);
-      return risk > 0 ? (reward / risk).toFixed(2) : "0";
+  const goNext = (from: number) => {
+    if (from === 1 && capital <= 0) return;
+    if (from === 2 && !biasScenario) {
+      setActiveStep(3);
+      return;
     }
-    return "0";
+    setActiveStep(from + 1);
   };
 
-  const calculatePositionSize = () => {
-    const capital = parseFloat(calcCapital);
-    const maxLoss = parseFloat(calcMaxLoss);
-    const entry = parseFloat(calcEntry);
-    const stopLoss = parseFloat(calcStopLoss);
-
-    if (capital && maxLoss && entry && stopLoss) {
-      const riskPerShare = Math.abs(entry - stopLoss);
-      const maxLossAmount = (capital * maxLoss) / 100;
-      return riskPerShare > 0 ? Math.floor(maxLossAmount / riskPerShare) : 0;
+  const activateGenome = () => {
+    if (!biasScenario) {
+      setActiveStep(3);
+      return;
     }
-    return 0;
-  };
-
-  const calculateRequiredGain = () => {
-    const maxLoss = parseFloat(calcMaxLoss);
-    if (maxLoss) {
-      return ((maxLoss / (100 - maxLoss)) * 100).toFixed(2);
-    }
-    return "0";
-  };
-
-  // Show survey if not completed
-  if (surveyState === "in_progress") {
-    return (
-      <>
-        <main className="container px-4 py-8">
-          <RiskSurvey onComplete={handleSurveyComplete} onCancel={handleCancelSurvey} />
-        </main>
-        <Footer />
-      </>
+    setShowGenome(true);
+    setGuardActive(true);
+    localStorage.setItem(
+      "hawkeye_retail_genome",
+      JSON.stringify({ capitalInput, maxDrawdown, biasScenario, showGenome: true })
     );
-  }
+  };
 
-  // Show strategy dashboard if survey completed
-  if (surveyState === "completed" && strategyProfile && surveyScore !== null) {
-    return (
-      <>
-        <main className="container px-4 py-8">
-          <Tabs defaultValue="stocks-etf" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="stocks-etf">Cổ phiếu & ETF</TabsTrigger>
-              <TabsTrigger value="derivatives" disabled>
-                <Lock className="mr-2 h-4 w-4" />
-                Phái sinh (Derivatives)
-              </TabsTrigger>
-              <TabsTrigger value="forex-crypto" disabled>
-                <Lock className="mr-2 h-4 w-4" />
-                Ngoại hối & Crypto
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="stocks-etf" className="mt-0">
-              <StrategyDashboard profile={strategyProfile} score={surveyScore} onRetakeSurvey={handleRetakeSurvey} />
-            </TabsContent>
-            <TabsContent value="derivatives" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5 text-muted-foreground" />
-                    Tính năng đang phát triển
-                  </CardTitle>
-                  <CardDescription>
-                    Phái sinh (Derivatives) - Hedging danh mục và Quyền chọn
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Tính năng Hedging danh mục và Quyền chọn đang được phát triển. 
-                    Chúng tôi sẽ thông báo khi tính năng này sẵn sàng.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="forex-crypto" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5 text-muted-foreground" />
-                    Tính năng đang phát triển
-                  </CardTitle>
-                  <CardDescription>
-                    Ngoại hối & Crypto
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Tính năng Ngoại hối và Crypto đang được phát triển. 
-                    Chúng tôi sẽ thông báo khi tính năng này sẵn sàng.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  // Show main trade plan page with option to start survey
   return (
-    <>
-      <main className="container px-4 py-8">
-        {/* Survey Prompt Card */}
-        <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardHeader>
-            <CardTitle>Khám phá Hồ sơ Đầu tư của Bạn</CardTitle>
-            <CardDescription>
-              Hoàn thành khảo sát khẩu vị rủi ro để nhận chiến lược đầu tư được cá nhân hóa
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button size="lg" onClick={handleStartSurvey}>
-              <TrendingUp className="mr-2 h-5 w-5" />
-              Bắt đầu Khảo sát
-            </Button>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-[#0D0D0C] text-[#E4E4E7] pb-16">
+      <div className="absolute top-0 left-1/3 w-[480px] h-[320px] bg-sky-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">TradePlan Builder</h1>
-            <p className="text-muted-foreground mt-2">
-              Create and manage your trading plans
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowCalculator(!showCalculator)}>
-              <Calculator className="mr-2 h-4 w-4" />
-              Risk Calculator
-            </Button>
-            <Link href="/dashboard/trade-plan/new">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Plan
-              </Button>
-            </Link>
-          </div>
+      <main className="container max-w-2xl mx-auto px-4 py-10 relative z-10">
+        <div className="mb-8 border-b border-white/[0.04] pb-6">
+          <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-2xl">
+            RETAIL WORKSPACE
+          </span>
+          <h1 className="text-xl font-semibold text-white mt-3">Trade Plan — từng bước một</h1>
+          <p className="text-zinc-500 text-sm mt-1">Chỉ mở một bước tại một thời điểm.</p>
         </div>
 
-        {showCalculator && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Risk-Reward Calculator</CardTitle>
-              <CardDescription>
-                Calculate position sizing and risk metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label>Total Capital (VND)</Label>
-                    <Input
-                      type="number"
-                      placeholder="100000000"
-                      value={calcCapital}
-                      onChange={(e) => setCalcCapital(e.target.value)}
-                    />
+        <div className="space-y-3">
+          {STEPS.map((step) => {
+            const isOpen = activeStep === step.id;
+            const Icon = step.icon;
+            const done =
+              (step.id === 1 && capital > 0) ||
+              (step.id === 2 && maxDrawdown < 0) ||
+              (step.id === 3 && !!biasScenario);
+
+            return (
+              <div
+                key={step.id}
+                className="bg-[#121214]/50 border border-white/[0.04] rounded-2xl overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(isOpen ? 0 : step.id)}
+                  className="w-full px-5 py-4 flex justify-between items-center text-left hover:bg-white/[0.02] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`p-2 rounded-xl ${
+                        isOpen ? "bg-sky-500/10 text-sky-400" : "bg-white/[0.04] text-zinc-500"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-semibold text-white flex items-center gap-2">
+                        Bước {step.id}: {step.title}
+                        {done && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                      </h3>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">{step.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Max Loss %</Label>
-                    <Input
-                      type="number"
-                      placeholder="5"
-                      value={calcMaxLoss}
-                      onChange={(e) => setCalcMaxLoss(e.target.value)}
-                    />
+                  <ChevronDown
+                    className={`w-4 h-4 text-zinc-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-5 pb-5 border-t border-white/[0.04]"
+                    >
+                      {step.id === 1 && (
+                        <div className="pt-4 space-y-3">
+                          <input
+                            type="text"
+                            value={capitalInput}
+                            onChange={(e) =>
+                              setCapitalInput(formatCapitalInput(e.target.value.replace(/\D/g, "")))
+                            }
+                            className="w-full bg-[#0D0D0C] border border-white/[0.06] rounded-2xl px-4 py-3 font-mono text-sm text-white focus:outline-none focus:border-sky-500/40"
+                            placeholder="Nhập VND..."
+                          />
+                          <p className="text-[10px] text-zinc-500 font-mono">≈ {formatVnd(capital)}</p>
+                          <Button
+                            type="button"
+                            onClick={() => goNext(1)}
+                            disabled={capital <= 0}
+                            className="w-full rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-mono"
+                          >
+                            Tiếp tục
+                          </Button>
+                        </div>
+                      )}
+                      {step.id === 2 && (
+                        <div className="pt-4 space-y-3 font-mono text-xs">
+                          <div className="flex justify-between text-zinc-400">
+                            <span>Ngưỡng cắt lỗ tối đa</span>
+                            <span className="text-rose-400 font-bold">{maxDrawdown}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={-40}
+                            max={-5}
+                            value={maxDrawdown}
+                            onChange={(e) => setMaxDrawdown(Number(e.target.value))}
+                            className="w-full accent-rose-500 h-1.5 bg-white/[0.06] rounded-full"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => goNext(2)}
+                            className="w-full rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-mono"
+                          >
+                            Tiếp tục
+                          </Button>
+                        </div>
+                      )}
+                      {step.id === 3 && (
+                        <div className="pt-4 space-y-3">
+                          <select
+                            value={biasScenario}
+                            onChange={(e) => setBiasScenario(e.target.value)}
+                            className="w-full bg-[#0D0D0C] border border-white/[0.06] rounded-2xl px-3 py-3 text-xs text-zinc-300 focus:outline-none focus:border-sky-500/40"
+                          >
+                            <option value="">Khi cổ phiếu lõi giảm -12%, bạn sẽ...</option>
+                            <option value="fomo">Mua thêm (FOMO)</option>
+                            <option value="panic">Bán tháo cắt lỗ</option>
+                            <option value="hold">Giữ vị thế, nhờ AI giám sát</option>
+                          </select>
+                          <Button
+                            onClick={activateGenome}
+                            disabled={!biasScenario}
+                            className="w-full h-11 rounded-2xl bg-sky-600/90 hover:bg-sky-500 text-white font-mono text-xs"
+                          >
+                            <Cpu className="h-4 w-4 mr-2" />
+                            Tính phân bổ & xem báo cáo
+                          </Button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+
+        <AnimatePresence>
+          {showGenome && capital > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 bg-[#121214]/50 border border-white/[0.04] rounded-2xl p-6 space-y-5"
+            >
+              <div className="border-b border-white/[0.06] pb-3">
+                <span className="text-[10px] font-mono text-sky-400">INVESTOR GENOME REPORT</span>
+                <h3 className="text-sm font-semibold text-white mt-1">Phân bổ chuẩn F0</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  Vốn {formatVnd(capital)} · Drawdown {maxDrawdown}%
+                </p>
+              </div>
+
+              <div className="flex h-2.5 rounded-full overflow-hidden bg-white/[0.06]">
+                {RETAIL_ALLOCATION.map((a) => (
+                  <div key={a.name} style={{ width: `${a.pct}%`, backgroundColor: a.color }} />
+                ))}
+              </div>
+
+              <div className="space-y-2 font-mono text-xs">
+                {RETAIL_ALLOCATION.map((row) => (
+                  <div
+                    key={row.name}
+                    className="flex justify-between py-2 border-b border-white/[0.04] last:border-0"
+                  >
+                    <span className="text-zinc-500">
+                      {row.name} ({row.pct}%)
+                    </span>
+                    <span className="text-white font-semibold">
+                      {formatVnd(Math.round((row.pct / 100) * capital))}
+                    </span>
                   </div>
-                  <div>
-                    <Label>Entry Price</Label>
-                    <Input
-                      type="number"
-                      placeholder="100000"
-                      value={calcEntry}
-                      onChange={(e) => setCalcEntry(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Stop Loss</Label>
-                    <Input
-                      type="number"
-                      placeholder="95000"
-                      value={calcStopLoss}
-                      onChange={(e) => setCalcStopLoss(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Exit Price</Label>
-                    <Input
-                      type="number"
-                      placeholder="110000"
-                      value={calcExit}
-                      onChange={(e) => setCalcExit(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Results</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Risk-Reward Ratio</p>
-                        <p className="text-2xl font-bold">{calculateRiskReward()}:1</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Position Size (shares)</p>
-                        <p className="text-2xl font-bold">{calculatePositionSize()}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Required Gain to Recover</p>
-                        <p className="text-2xl font-bold">{calculateRequiredGain()}%</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                ))}
+              </div>
+
+              <div
+                className={`flex items-center gap-3 p-3 rounded-2xl border ${
+                  guardActive
+                    ? "border-emerald-500/20 bg-emerald-500/[0.06]"
+                    : "border-white/[0.04] bg-white/[0.02]"
+                }`}
+              >
+                <Radar
+                  className={`w-4 h-4 shrink-0 ${guardActive ? "text-emerald-400 animate-pulse" : "text-zinc-500"}`}
+                />
+                <div>
+                  <p className="text-[10px] font-mono text-emerald-400">AI GUARD MONITOR</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    {guardActive
+                      ? "Đang giám sát drawdown & cảnh báo hành vi — trạng thái ACTIVE"
+                      : "Chờ kích hoạt"}
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Trading Journal Table */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Trading Journal</CardTitle>
-            <CardDescription>Overview of all your trading plans</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Tên / Mã CK</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Chiến lược</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold">Entry</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold">Target</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold">Stop Loss</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold">R:R</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold">Trạng thái</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold">Cập nhật</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.isArray(tradePlans) && tradePlans.map((plan) => (
-                    <tr key={plan.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="font-medium">{plan.name}</p>
-                          <p className="text-xs text-muted-foreground">{plan.ticker ?? "—"}</p>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm">{plan.strategyType || plan.strategy || "—"}</span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-mono">
-                          {plan.entryPrice ? `${plan.entryPrice.toLocaleString()}₫` : "—"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-mono text-emerald-600 dark:text-emerald-400">
-                          {plan.targetPrice ? `${plan.targetPrice.toLocaleString()}₫` : "—"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-mono text-red-600 dark:text-red-400">
-                          {plan.stopLoss ? `${plan.stopLoss.toLocaleString()}₫` : "—"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-mono font-semibold">
-                          {plan.riskRewardRatio ? `${plan.riskRewardRatio}:1` : "—"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            plan.status === "active"
-                              ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
-                              : plan.status === "closed"
-                              ? "bg-gray-500/20 text-gray-700 dark:text-gray-400"
-                              : "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
-                          }`}
-                        >
-                          {plan.status === "active" ? "Hoạt động" : plan.status === "closed" ? "Đóng" : "Nháp"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(plan.updatedAt).toLocaleDateString("vi-VN")}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <Link href={`/trade-plan/${plan.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {Array.isArray(tradePlans) && tradePlans.length === 0 && (
-                <div className="py-12 text-center">
-                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">Chưa có kế hoạch giao dịch nào</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {Array.isArray(tradePlans) && tradePlans.length === 0 && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">No trade plans yet</p>
-              <Link href="/dashboard/trade-plan/new">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Your First Plan
+              <Link href="/dashboard/deal-digest">
+                <Button
+                  variant="outline"
+                  className="w-full text-xs font-mono border-white/[0.06] text-zinc-400 hover:text-white rounded-2xl"
+                >
+                  Mở Deal Digest
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="mt-8 flex justify-between items-center">
+          <Link href="/dashboard/trade-plan/new">
+            <Button size="sm" className="bg-sky-600/90 hover:bg-sky-500 text-white font-mono text-xs rounded-2xl">
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              TradePlan mới
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mt-10 bg-[#121214]/50 border border-white/[0.04] rounded-2xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowJournal(!showJournal)}
+            className="w-full px-5 py-4 flex justify-between items-center text-left"
+          >
+            <span className="text-xs font-mono text-zinc-400 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              NHẬT KÝ ({tradePlans.length})
+            </span>
+            <ChevronDown className={`w-4 h-4 text-zinc-500 ${showJournal ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {showJournal && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: "auto" }}
+                exit={{ height: 0 }}
+                className="border-t border-white/[0.04] px-5 pb-5"
+              >
+                {tradePlans.length === 0 ? (
+                  <p className="text-xs text-zinc-600 py-6 text-center font-mono">Chưa có kế hoạch.</p>
+                ) : (
+                  <ul className="mt-3 space-y-2 text-[11px] font-mono">
+                    {tradePlans.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex justify-between text-zinc-400 border-b border-white/[0.04] pb-2"
+                      >
+                        <span className="text-white">
+                          {p.name} ({p.ticker ?? "—"})
+                        </span>
+                        <span>{p.status}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </main>
+
       <Footer />
-    </>
+    </div>
   );
 }
-

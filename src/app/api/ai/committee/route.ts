@@ -1,111 +1,147 @@
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/generative-ai';
-import { generateCfaReportTemplate } from '@/lib/ai/pdf-template';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getCompanySnapshot } from "@/data/market-snapshot";
+import { formatDgcContextForPrompt, DGC_DGW_TEMPLATE } from "@/data/dgc-template";
+import { generateCfaReportTemplate } from "@/lib/ai/pdf-template";
+
+function parseModelJson(raw: string) {
+  const clean = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+function buildInstitutionalBaseline(ticker: string) {
+  const c = getCompanySnapshot(ticker);
+  const dgcBlock =
+    ticker === "DGW" || ticker === "DGC"
+      ? formatDgcContextForPrompt(ticker)
+      : formatDgcContextForPrompt("DGW");
+
+  return `
+HISTORICAL CORPORATE BASELINE — ${ticker} (${c.companyName}):
+- Giá hiện tại: ${c.currentPrice.toLocaleString()} VND | Ngành: ${c.sector}
+- Doanh thu lịch sử (tỷ VND): ${c.historicalRevenue.join(", ")}
+- EBIT (tỷ VND): ${c.historicalEbit.join(", ")}
+- CapEx: ${c.capex} | ΔWorking Capital: ${c.workingCapitalChange}
+- DuPont: ROE ${(c.roe * 100).toFixed(1)}%, Net Margin ${(c.netMargin * 100).toFixed(1)}%, Asset Turnover ${c.assetTurnover}x, Leverage ${c.leverageRatio}x
+
+${dgcBlock}
+
+DGC TEMPLATE PARAMETERS (embedded):
+- Segments: ${DGC_DGW_TEMPLATE.segments.map((s) => s.name).join(" | ")}
+- Revenue CAGR: ${DGC_DGW_TEMPLATE.revenueCagrPct}%
+- Forecast horizon: ${DGC_DGW_TEMPLATE.dcfHorizonYears} years explicit + terminal
+`.trim();
+}
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized access blocked" }, { status: 401 });
+    }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = await request.json();
+    const cleanTicker = (body.ticker || "DGW").toUpperCase().trim();
+    const companyData = getCompanySnapshot(cleanTicker);
 
-    const { ticker, companyName, currentPrice, quantResult } = await request.json();
-    const { regimeDetected, portfolio } = quantResult;
+    const wacc = body.waccInput ?? body.wacc ?? DGC_DGW_TEMPLATE.waccAssumption;
+    const g = body.growthInput ?? body.terminalGrowth ?? DGC_DGW_TEMPLATE.terminalGrowthPct;
+    const regime = body.regime ?? body.quantResult?.regimeDetected ?? "Risk-On Expansion";
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return NextResponse.json({ error: 'Gemini API Key missing' }, { status: 500 });
-    
-    const genAI = new GoogleGenAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-pro',
-      generationConfig: { responseMimeType: "application/json" }
+    if (!apiKey) {
+      return NextResponse.json({ error: "API Key missing in environment" }, { status: 500 });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-pro",
+      generationConfig: { responseMimeType: "application/json" },
     });
 
-    // 1. Thu thập luận điểm từ Đặc vụ Bull & Bear như cấu trúc cũ
-    const bullPrompt = `You are the Lead Bull Analyst (CFA). Analyze growth catalysts for ${ticker} (${companyName}).`;
-    const bullResponse = await model.generateContent(bullPrompt);
-    const bullThesis = bullResponse.response.text();
+    const baseline = buildInstitutionalBaseline(cleanTicker);
 
-    const bearPrompt = `You are the Forensic Auditor & Bear Analyst. Find structural risks and window dressing signs for ${ticker} given long thesis: ${bullThesis}.`;
-    const bearResponse = await model.generateContent(bearPrompt);
-    const bearThesis = bearResponse.response.text();
+    const committeePrompt = `
+You are the Chief Risk Officer and Senior Quant at HawkEye Investment Committee (CFA Charter).
+Build an institutional-grade risk digest and 5-Year DCF (FCFF) for ${cleanTicker}.
 
-    // 2. Đặc vụ Phán quyết cuối cùng (CRO) - Thực hiện đồng hóa Mô hình toán DCF/FCFF
-    const croPrompt = `
-      You are the Chief Risk Officer and Final Arbiter at HawkEye Investment Committee.
-      Evaluate the debate for ${ticker} (${companyName}).
-      [BULL]: ${bullThesis}
-      [BEAR]: ${bearThesis}
+Audience: retail investors upgrading to Pro — clear, evidence-based, Vietnamese executive summary.
 
-      You must run a professional Discounted Cash Flow (DCF) to the Firm (FCFF) model according to CFA Equity Valuation standards.
-      Formula to simulate: FCFF = EBIT * (1 - Tax Rate) + D&A - Capital Expenditures - Change in Working Capital.
-      Project for the next 5 years based on current regime: ${regimeDetected}.
+${baseline}
 
-      You MUST respond ONLY with a valid JSON object matching the following structure exactly, no extra text wrappers:
-      {
-        "recommendation": "BUY" | "HOLD" | "SELL",
-        "targetPrice": number,
-        "convictionScore": number,
-        "executiveSummary": "Vietnamese string summarizing the committee conclusion.",
-        "dupontAnalysis": {
-          "roe": "string", "netMargin": "string", "assetTurnover": "string", "leverageRatio": "string"
-        },
-        "dcfForecast": {
-          "wacc": number,
-          "terminalGrowth": number,
-          "terminalValue": number,
-          "enterpriseValue": number,
-          "forecastYears": [
-            {
-              "year": "2026F",
-              "revenue": number,
-              "ebit": number,
-              "tax": number,
-              "capex": number,
-              "workingCapitalChange": number,
-              "fcff": number,
-              "pvFcff": number
-            },
-            { "year": "2027F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
-            { "year": "2028F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
-            { "year": "2029F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
-            { "year": "2030F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number }
-          ]
-        },
-        "actionChecklist": ["string", "string"]
-      }
-    `;
+Macro: Rf = 6.0%, ERP = 8.0%, Tax = 20%.
+WACC = ${wacc}, Terminal g = ${g}, Regime = ${regime}.
+Forecast: 2026F–2030F (5 years). Map revenue growth to DGC segments (Mobile phones, Laptops & tablets, Office equipment).
 
-    const finalCommitteeResponse = await model.generateContent(croPrompt);
-    const rawText = finalCommitteeResponse.response.text();
-    const cleanText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const cleanJsonData = JSON.parse(cleanText);
+Respond ONLY with valid JSON:
+{
+  "recommendation": "BUY" | "HOLD" | "SELL",
+  "targetPrice": number,
+  "convictionScore": number,
+  "executiveSummary": "Tóm tắt tiếng Việt",
+  "segmentNotes": [
+    { "segment": "Mobile phones", "revenueSharePct": number, "growthOutlook": "string" },
+    { "segment": "Laptops & tablets", "revenueSharePct": number, "growthOutlook": "string" },
+    { "segment": "Office equipment", "revenueSharePct": number, "growthOutlook": "string" }
+  ],
+  "dupontAnalysis": {
+    "roe": "percentage string",
+    "netMargin": "percentage string",
+    "assetTurnover": "multiplier string",
+    "leverageRatio": "multiplier string"
+  },
+  "dcfForecast": {
+    "wacc": ${wacc},
+    "terminalGrowth": ${g},
+    "terminalValue": number,
+    "enterpriseValue": number,
+    "forecastYears": [
+      { "year": "2026F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
+      { "year": "2027F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
+      { "year": "2028F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
+      { "year": "2029F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number },
+      { "year": "2030F", "revenue": number, "ebit": number, "tax": number, "capex": number, "workingCapitalChange": number, "fcff": number, "pvFcff": number }
+    ]
+  },
+  "actionChecklist": ["bước 1", "bước 2", "bước 3"]
+}
+`.trim();
 
-    // 3. Đổ toàn bộ dữ liệu lập luận và bảng số liệu toán DCF vào template HTML
+    const response = await model.generateContent(committeePrompt);
+    const parsedData = parseModelJson(response.response.text());
+
     const htmlReportContent = generateCfaReportTemplate({
-      ticker,
-      companyName,
-      currentPrice,
-      targetPrice: cleanJsonData.targetPrice,
-      convictionScore: cleanJsonData.convictionScore,
-      regime: regimeDetected,
-      recommendation: cleanJsonData.recommendation,
-      executiveSummary: cleanJsonData.executiveSummary,
-      dupontAnalysis: cleanJsonData.dupontAnalysis,
-      dcfForecast: cleanJsonData.dcfForecast, // Gói dữ liệu mới được nhúng vào template
-      actionChecklist: cleanJsonData.actionChecklist
+      ticker: companyData.ticker,
+      companyName: companyData.companyName,
+      currentPrice: companyData.currentPrice,
+      targetPrice: parsedData.targetPrice ?? companyData.currentPrice,
+      convictionScore: parsedData.convictionScore ?? 50,
+      regime,
+      recommendation: parsedData.recommendation ?? "HOLD",
+      executiveSummary: parsedData.executiveSummary ?? "",
+      dupontAnalysis: parsedData.dupontAnalysis ?? {
+        roe: `${(companyData.roe * 100).toFixed(1)}%`,
+        netMargin: `${(companyData.netMargin * 100).toFixed(1)}%`,
+        assetTurnover: `${companyData.assetTurnover}x`,
+        leverageRatio: `${companyData.leverageRatio}x`,
+      },
+      dcfForecast: parsedData.dcfForecast,
+      segmentNotes: parsedData.segmentNotes,
+      actionChecklist: parsedData.actionChecklist ?? [],
     });
 
     return NextResponse.json({
       success: true,
-      ticker,
-      recommendation: cleanJsonData.recommendation,
-      convictionScore: cleanJsonData.convictionScore,
-      htmlReport: htmlReportContent
+      ticker: cleanTicker,
+      recommendation: parsedData.recommendation,
+      convictionScore: parsedData.convictionScore,
+      htmlReport: htmlReportContent,
     });
-
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Committee analysis failed";
+    console.error("AI committee error:", error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

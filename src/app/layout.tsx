@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={inter.variable}>
-      <body className="antialiased m-0 p-0 dark bg-[#09090b] text-slate-100 bg-cyber-grid min-h-screen relative">
+      <body className="antialiased m-0 p-0 dark bg-[#0D0D0C] text-[#E4E4E7] min-h-screen relative">
         <SmoothScrollProvider>
           <QueryProvider>
             <Providers>
