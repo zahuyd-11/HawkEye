@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { hpgMockData } from "@/data/mock-hpg-data";
 import { calculateValuation } from "@/lib/valuation-logic";
 import { macroStats, impactNews } from "@/data/mock-macro-data";
+import { RETAIL_LEGAL_DISCLAIMER } from "@/lib/compliance/disclaimer";
 
 export interface CompanionResponse {
   replyText: string;
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
 
   if (!apiKey) {
     const data = getMockCompanion(userMessage);
-    return NextResponse.json({ ...data, mode: "mock" });
+    return NextResponse.json({ ...data, disclaimer: RETAIL_LEGAL_DISCLAIMER, mode: "mock" });
   }
 
   try {
@@ -147,10 +148,10 @@ Respond ONLY with valid JSON (no markdown wrappers):
     const rawText = result.response.text();
     const data = parseCompanionFromText(rawText) ?? getMockCompanion(userMessage);
 
-    return NextResponse.json({ ...data, mode: "gemini" });
+    return NextResponse.json({ ...data, disclaimer: RETAIL_LEGAL_DISCLAIMER, mode: "gemini" });
   } catch (error: unknown) {
     console.error("Chat companion error:", error);
     const data = getMockCompanion(userMessage);
-    return NextResponse.json({ ...data, mode: "fallback" });
+    return NextResponse.json({ ...data, disclaimer: RETAIL_LEGAL_DISCLAIMER, mode: "fallback" });
   }
 }

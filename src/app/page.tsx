@@ -35,9 +35,9 @@ const fadeInUp = {
 const RIBBON = [
   { l: "VNINDEX", v: "+1.28%", c: "text-emerald-400" },
   { l: "THỊ TRƯỜNG", v: "Mở rộng (Risk-On)", c: "text-emerald-400" },
-  { l: "THANH KHOẢN", v: "+14.2%", c: "text-sky-400" },
+  { l: "THANH KHOẢN", v: "+14.2%", c: "text-hawkeye-glow" },
   { l: "NGÂN HÀNG", v: "Tích lũy mạnh", c: "text-emerald-400" },
-  { l: "DÒNG NGOẠI", v: "Net mua +420 tỷ", c: "text-sky-400" },
+  { l: "DÒNG NGOẠI", v: "Net mua +420 tỷ", c: "text-hawkeye-glow-bright" },
 ];
 
 export default function HomePage() {
@@ -49,15 +49,15 @@ export default function HomePage() {
     e.preventDefault();
     const code = ticker.trim().toUpperCase();
     if (code) {
-      router.push(`/dashboard/deal-digest?scan=${code}`);
+      router.push(`/dashboard/risk-desk?scan=${code}`);
     } else {
       router.push("/auth/signup");
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0D0C] text-[#E4E4E7] font-sans antialiased relative overflow-hidden selection:bg-sky-500/20">
-      <div className="w-full h-10 bg-[#121214]/50 border-b border-white/[0.04] flex items-center overflow-hidden z-40 backdrop-blur-md">
+    <div className="min-h-screen text-[#E4E4E7] font-sans antialiased relative overflow-hidden">
+      <div className="w-full h-10 bg-gradient-to-r from-hawkeye-obsidian/90 via-hawkeye-navy/70 to-hawkeye-charcoal/90 border-b border-white/[0.04] flex items-center overflow-hidden z-40 backdrop-blur-md">
         <div className="flex animate-marquee whitespace-nowrap gap-16 text-[10px] font-mono tracking-widest text-zinc-500 uppercase px-4">
           {ribbonItems.map((item, i) => (
             <span key={i} className="flex items-center gap-2">
@@ -69,7 +69,8 @@ export default function HomePage() {
 
       <Header />
 
-      <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[720px] h-[380px] bg-gradient-to-b from-sky-500/[0.07] to-transparent rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[720px] h-[380px] bg-gradient-to-b from-hawkeye-glow/15 via-hawkeye-navy-mid/20 to-transparent rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-20 right-0 w-[400px] h-[280px] bg-gradient-to-tl from-hawkeye-navy/30 to-transparent rounded-full blur-[100px] pointer-events-none" />
 
       <motion.section
         className="max-w-3xl mx-auto px-6 pt-24 pb-20 relative z-10 text-center"
@@ -80,10 +81,10 @@ export default function HomePage() {
       >
         <motion.div
           variants={fadeInUp}
-          className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#121214]/60 border border-white/[0.06] rounded-2xl backdrop-blur-md mb-8"
+          className="inline-flex items-center gap-2 px-3 py-1.5 obsidian-glass rounded-2xl mb-8"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-hawkeye-glow animate-pulse shadow-[0_0_8px_rgba(94,184,217,0.6)]" />
+          <span className="text-[10px] font-mono tracking-widest text-hawkeye-glow/80 uppercase">
             AI Investment Companion · Freemium
           </span>
         </motion.div>
@@ -94,7 +95,7 @@ export default function HomePage() {
         >
           Người đồng hành AI
           <br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-500">
+          <span className="text-gradient-hawkeye">
             cho hành trình đầu tư của bạn
           </span>
         </motion.h1>
@@ -119,12 +120,12 @@ export default function HomePage() {
               value={ticker}
               onChange={(e) => setTicker(e.target.value.toUpperCase())}
               placeholder="Nhập mã cổ phiếu để quét AI..."
-              className="w-full pl-11 pr-4 py-4 bg-[#121214]/90 border border-white/[0.06] rounded-2xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/30 focus:shadow-[0_0_24px_rgba(56,189,248,0.08)] transition-all"
+              className="w-full pl-11 pr-4 py-4 bg-hawkeye-panel border border-hawkeye-glow/20 rounded-2xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-hawkeye-glow/40 focus:shadow-[0_0_28px_rgba(94,184,217,0.12)] transition-all"
             />
           </div>
           <button
             type="submit"
-            className="px-6 py-4 bg-sky-600/90 hover:bg-sky-500 text-white text-sm font-medium rounded-2xl shadow-[0_0_32px_rgba(56,189,248,0.12)] hover:shadow-[0_0_40px_rgba(56,189,248,0.2)] transition-all inline-flex items-center justify-center gap-2"
+            className="px-6 py-4 btn-hawkeye text-sm font-medium rounded-2xl inline-flex items-center justify-center gap-2"
           >
             Quét AI
             <ArrowUpRight className="w-4 h-4" />
@@ -162,8 +163,8 @@ export default function HomePage() {
             },
             {
               icon: BarChart3,
-              title: "Deal Digest",
-              desc: "Báo cáo DCF 5 năm chuẩn CFA từ snapshot doanh nghiệp.",
+              title: "HawkEye Risk Desk",
+              desc: "Báo cáo 1 trang chuẩn CFA — xem trực quan & tải PDF.",
             },
             {
               icon: Shield,
@@ -176,7 +177,7 @@ export default function HomePage() {
               variants={fadeInUp}
               className="obsidian-glass rounded-2xl p-6 hover:border-white/[0.1] transition-colors"
             >
-              <Icon className="w-5 h-5 text-sky-400 mb-4" />
+              <Icon className="w-5 h-5 text-hawkeye-glow mb-4" />
               <h3 className="text-sm font-semibold text-white">{title}</h3>
               <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{desc}</p>
             </motion.div>
@@ -192,7 +193,7 @@ export default function HomePage() {
         variants={fadeInUp}
       >
         <div className="flex items-center justify-center gap-2 mb-10">
-          <Sparkles className="w-4 h-4 text-sky-400" />
+          <Sparkles className="w-4 h-4 text-hawkeye-glow" />
           <h2 className="text-xl font-semibold text-white">Gói Freemium</h2>
         </div>
         <div className="grid md:grid-cols-3 gap-5 mb-12">
@@ -209,7 +210,7 @@ export default function HomePage() {
             <div
               key={t.name}
               className={`obsidian-glass rounded-2xl p-6 ${
-                t.highlight ? "border-sky-500/20 shadow-[0_0_40px_rgba(56,189,248,0.06)]" : ""
+                t.highlight ? "border-hawkeye-glow/25 shadow-[0_0_40px_rgba(94,184,217,0.08)]" : ""
               }`}
             >
               <p className="text-[10px] font-mono text-zinc-500 uppercase">{t.name}</p>
@@ -217,7 +218,7 @@ export default function HomePage() {
               <ul className="mt-4 space-y-2 text-xs text-zinc-500">
                 {t.perks.map((p) => (
                   <li key={p} className="flex gap-2">
-                    <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-hawkeye-glow shrink-0" />
                     {p}
                   </li>
                 ))}
@@ -239,7 +240,7 @@ export default function HomePage() {
           <h2 className="text-2xl font-semibold text-white">Bắt đầu miễn phí hôm nay</h2>
           <p className="text-sm text-zinc-500">Quỹ lớn & Family Office — sẽ có trên Roadmap.</p>
           <Link href="/auth/signup">
-            <span className="inline-flex px-8 py-4 bg-sky-600/90 hover:bg-sky-500 text-white text-sm rounded-2xl items-center gap-2 shadow-[0_0_32px_rgba(56,189,248,0.15)] hover:shadow-[0_0_48px_rgba(56,189,248,0.25)] transition-all cursor-pointer">
+            <span className="inline-flex px-8 py-4 btn-hawkeye text-sm rounded-2xl items-center gap-2 cursor-pointer">
               Tạo tài khoản Mini
               <ArrowUpRight className="h-4 w-4" />
             </span>

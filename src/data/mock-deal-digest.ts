@@ -25,6 +25,19 @@ export const mockDealDigests: DealDigestCard[] = [
     publishedAt: new Date().toISOString(),
   },
   {
+    id: "dgw",
+    ticker: "DGW",
+    companyName: "CTCP Digiworld",
+    sector: "Technology",
+    industry: "Technology Distribution",
+    marketCap: "Mid-Large (15,000 - 30,000 tỷ VND)",
+    riskScore: 5,
+    signal: "Hold",
+    summary:
+      "Phân phối Mobile/Laptop/Office — biên gộp cải thiện, QoQ tăng trưởng ổn. Báo cáo Risk Desk cập nhật tuần này.",
+    publishedAt: new Date().toISOString(),
+  },
+  {
     id: "2",
     ticker: "FPT",
     companyName: "CTCP FPT",

@@ -15,8 +15,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HawkEye - Investment Decision Support Platform",
-  description: "Get 1-page DealDigest reports, risk-driven alerts, and structured trading tools to make confident, emotion-free investment decisions.",
+  title: "HawkEye - AI Investment Companion",
+  description:
+    "Người đồng hành AI cho hành trình đầu tư — Deal Digest, Trade Plan DNA, phân tích định lượng.",
+  icons: {
+    icon: "/hawkeye-logo.svg",
+    apple: "/hawkeye-logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={inter.variable}>
-      <body className="antialiased m-0 p-0 dark bg-[#0D0D0C] text-[#E4E4E7] min-h-screen relative">
+      <body className="antialiased m-0 p-0 dark min-h-screen relative selection:bg-hawkeye-glow/25 selection:text-white">
         <SmoothScrollProvider>
           <QueryProvider>
             <Providers>

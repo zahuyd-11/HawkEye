@@ -4,55 +4,57 @@
 
 @layer base {
   :root {
+    --hawkeye-obsidian: #0a0a0b;
+    --hawkeye-charcoal: #141820;
+    --hawkeye-navy: #0f1c2e;
+    --hawkeye-navy-mid: #1a2b48;
+    --hawkeye-slate: #3d4f63;
+    --hawkeye-glow: #5eb8d9;
+    --hawkeye-glow-bright: #8ed4f0;
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    /* Deep Blue Primary */
-    --primary: 217 91% 20%;
+    --primary: 216 52% 22%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    /* Neon Green Accent */
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 199 56% 61%;
+    --accent-foreground: 216 52% 8%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 20%;
-    --radius: 0.5rem;
-    /* Gold Accent */
+    --ring: 199 56% 55%;
+    --radius: 0.75rem;
     --gold: 45 100% 51%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    /* Deep Blue Primary (darker for dark mode) */
-    --primary: 217 91% 35%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    /* Neon Green Accent (brighter for dark mode) */
-    --accent: 142 76% 46%;
-    --accent-foreground: 0 0% 100%;
+    --background: 220 35% 5%;
+    --foreground: 210 25% 92%;
+    --card: 216 40% 8%;
+    --card-foreground: 210 25% 92%;
+    --popover: 216 40% 8%;
+    --popover-foreground: 210 25% 92%;
+    --primary: 199 56% 55%;
+    --primary-foreground: 216 52% 8%;
+    --secondary: 216 32% 14%;
+    --secondary-foreground: 210 25% 92%;
+    --muted: 216 28% 16%;
+    --muted-foreground: 215 15% 58%;
+    --accent: 199 70% 48%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217 91% 35%;
-    /* Gold Accent */
+    --border: 216 25% 18%;
+    --input: 216 25% 18%;
+    --ring: 199 56% 55%;
     --gold: 45 100% 61%;
   }
 }
@@ -73,24 +75,49 @@
     overflow-x: hidden;
     box-sizing: border-box;
   }
-  
+
   body {
     overflow-x: hidden !important;
+    @apply text-foreground antialiased;
+    position: relative;
+    background-color: var(--hawkeye-obsidian);
+    color: #e4e4e7;
   }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 90% 55% at 15% -5%, rgba(94, 184, 217, 0.14), transparent 52%),
+      radial-gradient(ellipse 70% 45% at 88% 8%, rgba(26, 43, 72, 0.65), transparent 50%),
+      radial-gradient(ellipse 50% 35% at 50% 100%, rgba(20, 24, 32, 0.9), transparent 60%),
+      linear-gradient(165deg, #0a0a0b 0%, #0f1c2e 42%, #141820 72%, #0a0a0b 100%);
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.4;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(61, 79, 99, 0.03) 50%,
+      transparent 100%
+    );
+  }
+
   *,
   *::before,
   *::after {
     box-sizing: inherit;
   }
-  body {
-    @apply bg-background text-foreground;
-    position: relative;
-    color: hsl(var(--foreground));
-  }
-  
-  .dark body {
-    color: rgb(248, 250, 252); /* slate-50 - high contrast white */
-  }
+
   #__next {
     width: 100%;
     overflow-x: hidden;
@@ -98,20 +125,60 @@
 }
 
 @layer utilities {
-  /* Glassmorphism effect */
-  .glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .dark .glass {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .bg-hawkeye-mesh {
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(94, 184, 217, 0.1), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 5%, rgba(26, 43, 72, 0.45), transparent 50%),
+      linear-gradient(180deg, #0a0a0b 0%, #0f1c2e 50%, #141820 100%);
   }
 
-  /* Scroll animations */
+  .bg-hawkeye-panel {
+    background: linear-gradient(
+      145deg,
+      rgba(20, 24, 32, 0.85) 0%,
+      rgba(15, 28, 46, 0.75) 50%,
+      rgba(10, 10, 11, 0.9) 100%
+    );
+  }
+
+  .border-hawkeye-glow {
+    border: 1px solid rgba(94, 184, 217, 0.12);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 8px 32px rgba(0, 0, 0, 0.35),
+      0 0 24px rgba(94, 184, 217, 0.04);
+  }
+
+  .text-gradient-hawkeye {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #f4f4f5 0%, #8ed4f0 45%, #5eb8d9 70%, #a1a1aa 100%);
+  }
+
+  .btn-hawkeye {
+    background: linear-gradient(135deg, #1a2b48 0%, #0f1c2e 50%, #1a2b48 100%);
+    border: 1px solid rgba(94, 184, 217, 0.25);
+    box-shadow: 0 0 20px rgba(94, 184, 217, 0.12);
+    @apply text-white transition-all duration-300;
+  }
+
+  .btn-hawkeye:hover {
+    background: linear-gradient(135deg, #243b53 0%, #1a2b48 50%, #0f1c2e 100%);
+    box-shadow: 0 0 28px rgba(94, 184, 217, 0.22);
+    border-color: rgba(142, 212, 240, 0.35);
+  }
+
+  .glass {
+    background: rgba(15, 28, 46, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(94, 184, 217, 0.08);
+  }
+
+  .dark .glass {
+    background: rgba(10, 10, 11, 0.5);
+    border: 1px solid rgba(94, 184, 217, 0.1);
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -127,7 +194,6 @@
     animation: fadeInUp 0.6s ease-out forwards;
   }
 
-  /* Gold accent color */
   .text-gold {
     color: hsl(var(--gold));
   }
@@ -136,45 +202,41 @@
     background-color: hsl(var(--gold));
   }
 
-  /* Consumer fintech — no harsh grids; ambient depth only */
   .bg-grid-pattern,
   .dark .bg-grid-pattern {
-    background: radial-gradient(ellipse 70% 45% at 50% 0%, rgba(56, 189, 248, 0.05), transparent 65%);
+    background: radial-gradient(ellipse 70% 45% at 50% 0%, rgba(94, 184, 217, 0.06), transparent 65%);
   }
 
   .bg-cyber-grid {
-    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.06), transparent 70%);
+    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(94, 184, 217, 0.08), transparent 70%);
   }
 
   .obsidian-glass {
-    background: rgba(11, 15, 25, 0.6);
+    background: linear-gradient(
+      145deg,
+      rgba(20, 24, 32, 0.7) 0%,
+      rgba(15, 28, 46, 0.55) 100%
+    );
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(94, 184, 217, 0.08);
     box-shadow:
-      0 4px 24px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+      0 4px 24px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+      0 0 32px rgba(94, 184, 217, 0.03);
   }
 
   .border-ambient-glow {
     box-shadow:
-      0 0 0 1px rgba(56, 189, 248, 0.06),
-      0 8px 32px rgba(0, 0, 0, 0.4);
+      0 0 0 1px rgba(94, 184, 217, 0.1),
+      0 8px 32px rgba(0, 0, 0, 0.45);
   }
 
-  /* Abstract financial globe pattern */
   .bg-financial-globe {
-    background: 
-      radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-      radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%),
-      linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
-  }
-
-  html,
-  body {
-    background-color: #0d0d0c;
-    color: #e4e4e7;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(94, 184, 217, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 70% 70%, rgba(26, 43, 72, 0.4) 0%, transparent 50%),
+      linear-gradient(135deg, #0a0a0b 0%, #0f1c2e 100%);
   }
 
   @keyframes marquee {
@@ -202,5 +264,22 @@
 
   .animate-marquee-slow:hover {
     animation-play-state: paused;
+  }
+
+  @keyframes hawkeye-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-hawkeye-shimmer {
+    background-size: 200% 200%;
+    animation: hawkeye-shimmer 8s ease infinite;
   }
 }

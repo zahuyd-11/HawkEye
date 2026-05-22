@@ -1,3 +1,5 @@
+import { RETAIL_LEGAL_DISCLAIMER } from "@/lib/compliance/disclaimer";
+
 interface DcfYearRow {
   year: string;
   revenue: number;
@@ -208,6 +210,9 @@ export function generateCfaReportTemplate(data: CfaReportData): string {
           .join("")}
       </div>
 
+      <div style="font-size:10px;color:#64748b;margin-top:24px;padding:12px;border:1px solid #e2e8f0;border-radius:4px;line-height:1.5;">
+        ${RETAIL_LEGAL_DISCLAIMER}
+      </div>
       <div class="footer-note">
         HawkEye Operating System · Bản quyền Đặng Gia Huy & Cộng sự · CFA Ethics Compliance
       </div>

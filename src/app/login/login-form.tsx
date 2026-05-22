@@ -11,7 +11,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { useToast } from "@/components/ui/use-toast";
 import { createClient } from "@/utils/supabase/client";
-import { Eye, EyeOff, Mail, Lock, TrendingUp } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { BrandLogo } from "@/components/layout/brand-logo";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-primary/5 to-background">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
@@ -90,7 +91,7 @@ export default function LoginForm() {
             <p className="text-muted-foreground">Đăng nhập để tiếp tục với HawkEye</p>
           </div>
 
-          <Card className="glass border-primary/20 shadow-xl">
+          <Card className="obsidian-glass border-hawkeye-glow shadow-xl">
             <CardHeader>
               <CardTitle className="text-2xl">Đăng nhập</CardTitle>
               <CardDescription>

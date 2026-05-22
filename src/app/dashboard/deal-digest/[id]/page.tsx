@@ -39,6 +39,12 @@ export default function DealDigestDetailPage() {
         return;
       }
       
+      const cfaTickers = ["HPG", "FPT", "DGW", "VCB"];
+      if (cfaTickers.includes(ticker)) {
+        router.replace(`/dashboard/risk-desk/${ticker}`);
+        return;
+      }
+
       const data = getStockData(ticker);
       if (data) {
         setStockData(data);
@@ -69,7 +75,7 @@ export default function DealDigestDetailPage() {
       <>
         <main className="container px-4 py-8 max-w-5xl">
           <div className="mb-6">
-            <Link href="/dashboard/deal-digest">
+            <Link href="/dashboard/risk-desk">
               <Button variant="ghost" className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to DealDigest
@@ -81,7 +87,7 @@ export default function DealDigestDetailPage() {
             <p className="text-muted-foreground mb-4">
               Không tìm thấy phân tích cho mã cổ phiếu "{params.id}". Vui lòng thử lại với mã khác.
             </p>
-            <Link href="/dashboard/deal-digest">
+            <Link href="/dashboard/risk-desk">
               <Button>Back to DealDigest</Button>
             </Link>
           </div>
@@ -95,7 +101,7 @@ export default function DealDigestDetailPage() {
     <>
       <main className="container px-4 py-8 max-w-5xl">
         <div className="mb-6">
-          <Link href="/dashboard/deal-digest">
+          <Link href="/dashboard/risk-desk">
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to DealDigest

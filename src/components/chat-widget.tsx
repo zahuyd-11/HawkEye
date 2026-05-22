@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Target,
 } from "lucide-react";
+import { RETAIL_LEGAL_DISCLAIMER } from "@/lib/compliance/disclaimer";
 
 interface InsightBlocks {
   thesis: string;
@@ -98,7 +99,7 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-[#121214]/90 border border-white/[0.06] rounded-2xl flex items-center justify-center text-white shadow-[0_8px_32px_rgba(0,0,0,0.45)] hover:scale-105 hover:shadow-[0_0_24px_rgba(56,189,248,0.15)] transition-all backdrop-blur-xl"
+        className="w-14 h-14 obsidian-glass rounded-2xl flex items-center justify-center text-white hover:scale-105 hover:shadow-[0_0_28px_rgba(94,184,217,0.2)] transition-all"
       >
         {isOpen ? <X className="w-5 h-5" /> : <MessageSquare className="w-5 h-5" />}
       </button>
@@ -109,11 +110,11 @@ export function ChatWidget() {
             initial={{ opacity: 0, y: 15, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.96 }}
-            className="absolute bottom-[4.5rem] right-0 w-[22rem] max-w-[calc(100vw-2rem)] h-[32rem] bg-[#121214]/90 border border-white/[0.06] rounded-2xl overflow-hidden backdrop-blur-xl flex flex-col shadow-2xl"
+            className="absolute bottom-[4.5rem] right-0 w-[22rem] max-w-[calc(100vw-2rem)] h-[32rem] obsidian-glass border-hawkeye-glow rounded-2xl overflow-hidden flex flex-col shadow-2xl"
           >
-            <div className="bg-[#0D0D0C]/80 px-4 py-3 border-b border-white/[0.06] flex justify-between items-center">
+            <div className="bg-gradient-to-r from-hawkeye-obsidian/90 to-hawkeye-navy/80 px-4 py-3 border-b border-white/[0.06] flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                <Sparkles className="w-3.5 h-3.5 text-hawkeye-glow" />
                 <span className="text-white font-semibold tracking-wide text-[11px]">
                   AI Wealth Companion
                 </span>
@@ -142,9 +143,9 @@ export function ChatWidget() {
                         {m.blocks && (
                           <div className="space-y-2">
                             <InsightCard
-                              icon={<Target className="w-3 h-3 text-sky-400" />}
+                              icon={<Target className="w-3 h-3 text-hawkeye-glow" />}
                               label="Luận điểm"
-                              accent="border-sky-500/20 bg-sky-500/[0.04]"
+                              accent="border-hawkeye-glow/25 bg-hawkeye-navy-mid/40"
                               body={m.blocks.thesis}
                             />
                             <InsightCard
@@ -171,7 +172,7 @@ export function ChatWidget() {
                                   initial={{ width: 0 }}
                                   animate={{ width: `${m.blocks.confidence}%` }}
                                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                  className="bg-gradient-to-r from-sky-500 to-emerald-400 h-full rounded-full"
+                                  className="bg-gradient-to-r from-hawkeye-navy-mid via-hawkeye-glow to-hawkeye-glow-bright h-full rounded-full"
                                 />
                               </div>
                             </div>
@@ -184,12 +185,15 @@ export function ChatWidget() {
               ))}
               {isLoading && (
                 <div className="flex items-center gap-2 text-zinc-500 text-[10px]">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-sky-400" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-hawkeye-glow" />
                   Đang phân tích...
                 </div>
               )}
             </div>
 
+            <p className="px-3 pb-1 text-[8px] text-zinc-600 leading-snug border-t border-white/[0.04] pt-2">
+              {RETAIL_LEGAL_DISCLAIMER}
+            </p>
             <div className="p-3 bg-[#0D0D0C]/80 border-t border-white/[0.06] flex gap-2">
               <input
                 type="text"
@@ -198,13 +202,13 @@ export function ChatWidget() {
                 onKeyDown={(e) => e.key === "Enter" && dispatchQuery()}
                 placeholder="Hỏi mã cổ phiếu hoặc thị trường..."
                 disabled={isLoading}
-                className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-2xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500/40 placeholder:text-zinc-600"
+                className="flex-1 bg-hawkeye-obsidian/50 border border-white/[0.06] rounded-2xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-hawkeye-glow/40 placeholder:text-zinc-600"
               />
               <button
                 type="button"
                 onClick={dispatchQuery}
                 disabled={isLoading || !query.trim()}
-                className="p-2.5 bg-sky-600/90 hover:bg-sky-500 disabled:opacity-40 text-white rounded-2xl transition-colors"
+                className="p-2.5 btn-hawkeye disabled:opacity-40 rounded-2xl"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>

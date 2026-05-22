@@ -16,7 +16,8 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:community": "tsx prisma/seed-community.ts",
-    "generate:secret": "node scripts/generate-secret.js"
+    "generate:secret": "node scripts/generate-secret.js",
+    "vn30:ingest": "curl -s -X POST http://localhost:3000/api/cron/vn30-ingest -H \"Authorization: Bearer $env:CRON_SECRET\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

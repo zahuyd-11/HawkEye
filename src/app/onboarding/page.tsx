@@ -93,7 +93,7 @@ export default function OnboardingPage() {
       });
 
       // Explicit redirect to deal-digest page
-      router.push("/dashboard/deal-digest");
+      router.push("/dashboard/risk-desk");
     } catch (error) {
       console.error("Onboarding error:", error);
       toast({

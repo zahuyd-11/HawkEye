@@ -67,6 +67,15 @@ const config: Config = {
           800: "#243b53",
           900: "#102a43",
         },
+        hawkeye: {
+          obsidian: "#0a0a0b",
+          charcoal: "#141820",
+          navy: "#0f1c2e",
+          "navy-mid": "#1a2b48",
+          slate: "#3d4f63",
+          glow: "#5eb8d9",
+          "glow-bright": "#8ed4f0",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

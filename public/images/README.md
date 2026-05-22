@@ -1,28 +1,7 @@
-# Images Directory
+# HawkEye brand assets
 
-## Logo Placement
+Place **`1.png`** here for the header logo (`/images/1.png`).
 
-**Please place your `logo.png` file in this directory.**
+If the file is missing, the app automatically uses `/hawkeye-logo.svg` (correct aspect ratio, no crop).
 
-The logo should be:
-- Format: PNG (recommended) or SVG
-- Recommended size: 36x36px to 128x128px
-- File name: `logo.png` (or `logo.svg`)
-
-### Current Structure:
-```
-public/
-  images/
-    logo.png  ← Place your logo here
-```
-
-The Header component will automatically load the logo from `/images/logo.png`. If the PNG is not found, it will fallback to `/hawkeye-logo.svg`.
-
-## Other Assets
-
-You can also place other images here:
-- Hero section illustrations
-- Dashboard mockups
-- User avatars for social proof
-- Feature icons
-
+Recommended: square PNG ~512×512, hawk artwork centered with safe padding.

@@ -33,7 +33,7 @@ export function MarketTicker() {
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden bg-[#050816]/30 border-b border-white/[0.04] backdrop-blur-md">
+    <div className="w-full max-w-full overflow-hidden bg-gradient-to-r from-hawkeye-obsidian via-hawkeye-navy/80 to-hawkeye-charcoal border-b border-hawkeye-glow/10 backdrop-blur-md">
       <div className="flex animate-scroll w-max">
         {duplicatedData.map((data, index) => (
           <div

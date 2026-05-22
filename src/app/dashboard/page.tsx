@@ -116,7 +116,7 @@ function DashboardStatsContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/dashboard/deal-digest">
+            <Link href="/dashboard/risk-desk">
               <Button className="w-full">
                 View Reports <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
